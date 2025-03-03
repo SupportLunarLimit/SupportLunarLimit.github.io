@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>Photosen &mdash; Colorlib Website Template</title>
+  <title>Just 4 Fun &mdash; Just 4 Fun</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
@@ -26,6 +26,44 @@
 
   <link rel="stylesheet" href="css/style.css">
 
+
+
+<script>
+  function checkPassword() {
+      var encodedPassword = "Y2FjYQ==";
+      var password = prompt("Enter the password to access this page:");
+
+     
+      var decodedPassword = atob(encodedPassword);
+
+      
+      if (password === decodedPassword) {
+          
+          window.location.href = "singlee.html";
+      } else {
+          alert("Incorrect password. Please try again.");
+      }
+  }
+</script>
+
+<script>
+  const cloudName = "dg20zivyl";
+  const folder = "DR2019"; // Change to your folder name
+  const gallery = document.getElementById("gallery");
+
+  fetch(`https://res.cloudinary.com/${cloudName}/image/list/${folder}.json`)
+    .then(response => response.json())
+    .then(data => {
+      data.resources.forEach(image => {
+        const img = document.createElement("img");
+        img.src = `https://res.cloudinary.com/${cloudName}/image/upload/${image.public_id}.jpg`;
+        img.style.width = "200px"; // Adjust size
+        gallery.appendChild(img);
+      });
+    })
+    .catch(error => console.error("Error fetching images:", error));
+</script>
+
 </head>
 <body>
 
@@ -49,7 +87,7 @@
         <div class="row align-items-center">
 
           <div class="col-6 col-xl-2" data-aos="fade-down">
-            <h1 class="mb-0"><a href="index.html" class="text-white h2 mb-0">Photosen</a></h1>
+            <h1 class="mb-0"><a href="index.html" class="text-white h2 mb-0">Just 4 Fun</a></h1>
           </div>
           <div class="col-10 col-md-8 d-none d-xl-block" data-aos="fade-down">
             <nav class="site-navigation position-relative text-right text-lg-center" role="navigation">
@@ -57,11 +95,12 @@
               <ul class="site-menu js-clone-nav mx-auto d-none d-lg-block">
                 <li class="active"><a href="index.html">Home</a></li>
                 <li class="has-children">
+
                   <a href="single.html">Gallery</a>
                   <ul class="dropdown">
                     <li><a href="#">Nature</a></li>
                     <li><a href="#">Portrait</a></li>
-                    <li><a href="#">People</a></li>
+                    <li><a a onclick="checkPassword()"href="singlee.html">People</a></li>
                     <li><a href="#">Architecture</a></li>
                     <li><a href="#">Animals</a></li>
                     <li><a href="#">Sports</a></li>
@@ -79,6 +118,7 @@
                 <li><a href="services.html">Services</a></li>
                 <li><a href="about.html">About</a></li>
                 <li><a href="contact.html">Contact</a></li>
+                <button onclick="checkPassword()">Open Singlee.html</button>
               </ul>
             </nav>
           </div>
@@ -119,9 +159,9 @@
           <div class="image-wrap-2">
             <div class="image-info">
               <h2 class="mb-3">Nature</h2>
-              <a href="single.html" class="btn btn-outline-white py-2 px-4">More Photos</a>
+              <a onclick="checkPassword()"href="single.html" class="btn btn-outline-white py-2 px-4">More Photos</a>
             </div>
-            <img src="images/img_1.jpg" alt="Image" class="img-fluid">
+            <img src="https://res.cloudinary.com/dg20zivyl/image/upload/v1740886719/Zion2018/a00imggssxndgnlhbsy5.heic" alt="Image" class="img-fluid">
           </div>
 
         </div>
@@ -131,7 +171,7 @@
               <h2 class="mb-3">Portrait</h2>
               <a href="single.html" class="btn btn-outline-white py-2 px-4">More Photos</a>
             </div>
-            <img src="images/img_2.jpg" alt="Image" class="img-fluid">
+            <img src="https://res.cloudinary.com/dg20zivyl/image/upload/v1740886725/Zion2018/jo31fe0kha3jlwrsitto.png" alt="Image" class="img-fluid">
           </div>
         </div>
         <div class="col-lg-4">
