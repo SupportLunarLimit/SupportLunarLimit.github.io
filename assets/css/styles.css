@@ -117,3 +117,8 @@ tr:hover td{background:rgba(255,255,255,0.02)}
 .hidden{display:none}
 .footer-actions{margin-top:10px;display:flex;justify-content:flex-end}
 @media (max-width:700px){.footer-actions{justify-content:center}}
+
+
+/* Admin-only inline controls (buttons/links) */
+.admin-only-inline{display:none}
+.admin-mode .admin-only-inline{display:inline-flex}
