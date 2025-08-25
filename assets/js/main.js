@@ -69,7 +69,7 @@
     if (el) el.innerHTML = links.join(' · ');
 
     // Native-ish buttons with web fallback (but always show fallback block too)
-    if (pg){
+    if (pg && !pg.__built){ pg.__built=true;
       let btns = '';
       if (p.cashapp) btns += `<a class="btn btn-ghost" href="${p.cashapp}" target="_blank" rel="noopener">Cash App $1</a>`;
       if (p.venmo)   btns += `<a class="btn btn-ghost" href="${p.venmo}" target="_blank" rel="noopener">Venmo $1</a>`;
