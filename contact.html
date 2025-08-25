@@ -30,25 +30,21 @@
       <h1>Contact</h1>
       <p class="lead">Questions, ideas, or collaboration? Send a message below.</p>
 
-      <form id="contactForm" class="card" onsubmit="return sendEmail(event)">
-        <label>
-          Your name
-          <input type="text" id="c_name" required placeholder="Your name" />
+      <form id="contactForm" class="card">
+        <label>Your name
+          <input type="text" id="c_name" name="name" required />
         </label>
-        <label>
-          Your email
-          <input type="email" id="c_email" required placeholder="you@example.com" />
+        <label>Your email
+          <input type="email" id="c_email" name="_replyto" required />
         </label>
-        <label>
-          Subject
-          <input type="text" id="c_subject" required placeholder="How I can help" />
+        <label>Subject
+          <input type="text" id="c_subject" name="subject" required />
         </label>
-        <label>
-          Message
-          <textarea id="c_message" rows="6" required placeholder="Write your message"></textarea>
+        <label>Message
+          <textarea id="c_message" name="message" rows="6" required></textarea>
         </label>
         <button type="submit" class="btn btn-primary">Send</button>
-        <div class="micro">This uses your email app to send directly to <b>bostonboy94@gmail.com</b>. For backend delivery without opening an email app, see README for Netlify Forms/Formspree setup.</div>
+        <div id="contactStatus" class="micro" style="margin-top:8px;"></div>
       </form>
     </div>
   </section>
@@ -58,7 +54,7 @@
       <div>© <span id="year"></span> One Dollar Plan</div>
       <div class="micro">By donating you agree to our <a href="terms.html">Terms &amp; Conditions</a>. <strong>No refunds.</strong></div>
       <div class="footer-actions">
-        <button id="adminToggle" class="btn btn-ghost small" aria-label="Admin">Admin</button>
+        <a href="admin.html" class="btn btn-ghost small" aria-label="Admin">Admin</a>
       </div>
     </div>
   </footer>
@@ -67,18 +63,34 @@
   <script type="module" src="assets/js/firebase-app.js"></script>
   <script src="assets/js/main.js"></script>
   <script>
-    function sendEmail(e){
-      e.preventDefault();
-      const name = document.getElementById('c_name').value.trim();
-      const email = document.getElementById('c_email').value.trim();
-      const subject = document.getElementById('c_subject').value.trim();
-      const message = document.getElementById('c_message').value.trim();
-      const to = 'bostonboy94@gmail.com';
-      const body = encodeURIComponent(`From: ${name} <${email}>\n\n${message}`);
-      const url = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${body}`;
-      window.location.href = url;
-      return false;
+  const FORMSPREE_URL = "https://formspree.io/f/mgvleebn";
+  document.getElementById('contactForm').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const status = document.getElementById('contactStatus');
+    status.textContent = "Sending…";
+    const payload = {
+      name:   document.getElementById('c_name').value.trim(),
+      _replyto: document.getElementById('c_email').value.trim(),
+      subject: document.getElementById('c_subject').value.trim(),
+      message: document.getElementById('c_message').value.trim(),
+    };
+    try{
+      const res = await fetch(FORMSPREE_URL, {
+        method: "POST",
+        headers: { "Accept": "application/json", "Content-Type":"application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok){
+        status.textContent = "✅ Thanks! Your message was sent.";
+        e.target.reset();
+      } else {
+        const data = await res.json().catch(()=> ({}));
+        status.textContent = "❌ Send failed. " + (data?.errors?.[0]?.message || res.statusText);
+      }
+    }catch(err){
+      status.textContent = "⚠️ Network error. Please try again.";
     }
+  });
   </script>
 </body>
 </html>
