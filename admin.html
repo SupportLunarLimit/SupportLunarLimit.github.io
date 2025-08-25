@@ -28,7 +28,10 @@
       <h1>Admin sign-in</h1>
       <p class="micro">Enter admin passcode to access diagnostics & tools.</p>
       <label>Admin passcode
-        <input type="password" id="pin" placeholder="••••••" />
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="password" id="pin" placeholder="••••••" style="flex:1" />
+          <button class="btn btn-ghost small" id="toggleShow" type="button">Show</button>
+        </div>
       </label>
       <div style="margin-top:10px;display:flex;gap:10px">
         <button class="btn" id="enter">Enter</button>
@@ -91,10 +94,13 @@
     </div>
   </footer>
 
-  <script src="assets/js/firebase-config.js"></script>
-  <script type="module" src="assets/js/firebase-app.js"></script>
-  <script src="assets/js/main.js"></script>
   <script>
+    async function sha256Hex(str){
+      const enc = new TextEncoder();
+      const bytes = enc.encode(str);
+      const hash = await crypto.subtle.digest('SHA-256', bytes);
+      return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('');
+    }
     (function(){
       const gate = document.getElementById('gate');
       const adminContent = document.getElementById('adminContent');
@@ -103,19 +109,17 @@
       const btnEnter = document.getElementById('enter');
       const btnBack = document.getElementById('back');
       const inputEl = document.getElementById('pin');
+      const toggleShow = document.getElementById('toggleShow');
       const y = document.getElementById('year'); if (y) y.textContent = new Date().getFullYear().toString();
+
+      toggleShow?.addEventListener('click', ()=>{
+        const isPw = inputEl.type === 'password';
+        inputEl.type = isPw ? 'text' : 'password';
+        toggleShow.textContent = isPw ? 'Hide' : 'Show';
+      });
 
       btnBack.addEventListener('click', ()=> location.href = 'index.html');
 
-      async function sha256Digest(str) {
-        const enc = new TextEncoder();
-        const bytes = enc.encode(str);
-        const digest = await crypto.subtle.digest('SHA-256', bytes);
-        return new Uint8Array(digest);
-      }
-      function toHex(bytes){
-        return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
-      }
       function constantTimeEqual(a, b) {
         if (a.length !== b.length) return false;
         let r = 0; for (let i = 0; i < a.length; i++) r |= a.charCodeAt(i) ^ b.charCodeAt(i);
@@ -134,10 +138,13 @@
             return;
           }
 
-          const calc = toHex(await sha256Digest(pass));
+          const calc = await sha256Hex(pass);
           const ok = constantTimeEqual(calc, aa.hash);
-
-          if (!ok){ msg.textContent = 'Incorrect passcode'; return; }
+          if (!ok){
+            console.warn('[Admin Gate] Hash mismatch. calc=%s expected=%s', calc, aa.hash);
+            msg.textContent = 'Incorrect passcode';
+            return;
+          }
 
           document.body.classList.add('admin-mode');
           gate.classList.add('hidden');
@@ -152,5 +159,10 @@
       });
     })();
   </script>
+
+  <script src="assets/js/firebase-config.js?v=3"></script>
+  <script type="module" src="assets/js/firebase-app.js?v=3"></script>
+  <script src="assets/js/main.js?v=3"></script>
+
 </body>
 </html>

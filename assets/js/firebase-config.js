@@ -13,7 +13,7 @@ window.DONATION_APP_CONFIG = {
     cashapp: 'https://cash.app/$YourCashtag',
     venmo: 'https://venmo.com/u/YourVenmo',
     paypal: 'https://paypal.me/YourPayPalMe/1',
-    zelleEmail: 'YOUR-ZELLE-EMAIL@example.com',
+    zelleEmail: 'contact@onedollarplan.com',
     zellePhone: ''
   },
   demoMode: false,
