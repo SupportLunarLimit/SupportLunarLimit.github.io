@@ -111,7 +111,7 @@ const storage = {
       const message=(messageEl.value||'').trim();
       if (!isFinite(amount) || amount<=0) return alert('Enter a valid amount');
       const entry={name, amount: Math.round(amount*100)/100, message, ts: Date.now()};
-      try { await storage.add(entry); alert('Saved! Your donation entry was written to the database.'); } catch(e) { alert('Save failed: ' + (e && e.message ? e.message : e)); return; }
+      try { await storage.add(entry); alert('Saved! Your donation entry was written to the database.'); } catch(e) { if ((e && e.code && String(e.code).includes('PERMISSION_DENIED')) || (e && /Permission denied/i.test(String(e)))) { alert('Save failed: authentication not ready yet. Please wait a moment and try again.'); } else { alert('Save failed: ' + (e && e.message ? e.message : e)); } return; }
       form.reset();
       refresh(true);
       const sup = document.querySelector('#supporters'); if (sup) window.scrollTo({ top: sup.offsetTop-40, behavior:'smooth' });

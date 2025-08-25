@@ -13,6 +13,7 @@ if (!cfg.useFirebase) {
   Promise.all(imports.map(u => import(u))).then(([appMod, authMod, dbMod, fsMod]) => {
     const { initializeApp } = appMod;
     const { getAuth, signInAnonymously, onAuthStateChanged } = authMod;
+    let __authResolve; let __authReady = new Promise(r=>{ __authResolve = r; });
     const app = initializeApp(cfg.firebaseConfig);
 
     // Diagnostics hooks
@@ -22,6 +23,7 @@ if (!cfg.useFirebase) {
     const auth = getAuth(app);
     signInAnonymously(auth).catch((e)=>console.warn('Anonymous auth failed:', e));
     onAuthStateChanged(auth, (user)=>{
+      if (user && __authResolve){ __authResolve(true); __authResolve = null; document.dispatchEvent(new Event('firebase-ready')); }
       try{ const el=document.getElementById('diagAuth'); if (el) el.textContent = user ? ('signed in (anon) uid ' + user.uid) : 'not signed in'; window.__diag.auth = user ? 'signed-in' : 'signed-out'; window.__diag.uid = user?user.uid:null; }catch(e){}
     });
 
@@ -33,7 +35,7 @@ if (!cfg.useFirebase) {
       try{ const el=document.getElementById('diagDb'); if(el) el.textContent='Firestore ready'; window.__diag.db='firestore-ready'; }catch(e){}
     }
     try{ const el=document.getElementById('diagFb'); if(el) el.textContent='ready'; window.__diag.fb='ready'; }catch(e){}
-    document.dispatchEvent(new Event('firebase-ready'));
+    // (moved)
 
     // Diagnostics test write (amount $1 so it passes secure rules)
     document.addEventListener('firebase-ready', ()=>{
