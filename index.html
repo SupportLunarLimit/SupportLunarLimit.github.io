@@ -78,13 +78,15 @@
       <div>
         <h2>Donate your $1</h2>
         <p>Use any of the links below. After donating, add yourself to the list so the counter updates instantly.</p>
+        
         <div class="payment-grid" id="fallbackPayments">
           <a class="btn btn-ghost" href="https://cash.app/$YourCashtag" target="_blank" rel="noopener">Cash App $1</a>
           <a class="btn btn-ghost" href="https://venmo.com/u/YourVenmo" target="_blank" rel="noopener">Venmo $1</a>
           <a class="btn btn-ghost" href="https://paypal.me/YourPayPalMe/1" target="_blank" rel="noopener">PayPal $1</a>
           <button class="btn btn-ghost" type="button" id="zelleBtnFallback">Zelle $1</button>
         </div>
-        <div class="payment-grid hidden" id="paymentGrid"></div>
+        <div class="payment-grid" id="paymentGrid"></div>
+
         <p class="micro">Note: Direct payment providers do not share names/amounts with this page. Please add your donation manually below, or the counter won't move (unless using the optional Firebase backend).</p>
       </div>
       <div>

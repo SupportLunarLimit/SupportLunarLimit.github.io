@@ -111,7 +111,7 @@ const storage = {
       const message=(messageEl.value||'').trim();
       if (!isFinite(amount) || amount<=0) return alert('Enter a valid amount');
       const entry={name, amount: Math.round(amount*100)/100, message, ts: Date.now()};
-      await storage.add(entry);
+      try { await storage.add(entry); alert('Saved! Your donation entry was written to the database.'); } catch(e) { alert('Save failed: ' + (e && e.message ? e.message : e)); return; }
       form.reset();
       refresh(true);
       const sup = document.querySelector('#supporters'); if (sup) window.scrollTo({ top: sup.offsetTop-40, behavior:'smooth' });
