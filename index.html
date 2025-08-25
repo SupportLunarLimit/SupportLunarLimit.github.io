@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>One Dollar Plan — Help Fund a Dream</title>
+  <meta name="description" content="Join the One Dollar Plan: 10,000 people × $1 = flight school funded. Be 1 in 10,000." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <div class="brand">One Dollar Plan</div>
+      <button id="menuToggle" class="hamburger" aria-label="Menu" aria-expanded="false" aria-controls="mobileNav">☰</button>
+      <nav class="nav" id="mobileNav">
+        <a href="#how-it-works">How it works</a>
+        <a href="#proof">Proof & Updates</a>
+        <a href="#donate">Donate</a>
+        <a href="#supporters">Supporters</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="container hero-grid">
+      <div class="hero-copy">
+        <h1>10,000 people × $1 = <span class="accent">Flight School Funded</span></h1>
+        <p class="lead">I'm on a mission to become a pilot—one dollar at a time. If 10,000 people each chip in $1, this dream becomes real. Be 1 in 10,000.</p>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="#donate">Donate $1</a>
+          <button class="btn btn-ghost" id="shareBtn" type="button">Share this</button>
+        </div>
+        <p class="micro">Prefer direct: <span id="directLinks"></span></p>
+      </div>
+      <div class="hero-card">
+        <div class="meter">
+          <div class="meter-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+        <div class="stats">
+          <div>
+            <div class="stat-number" id="totalAmount">$0</div>
+            <div class="stat-label">Raised</div>
+          </div>
+          <div>
+            <div class="stat-number" id="donorCount">0</div>
+            <div class="stat-label">Donors</div>
+          </div>
+          <div>
+            <div class="stat-number" id="goalAmount">$10,000</div>
+            <div class="stat-label">Goal</div>
+          </div>
+        </div>
+        <div class="micro" id="percentText">0% funded</div>
+      </div>
+    </div>
+  </section>
+
+  
+
+  
+  
+
+  <section id="how-it-works" class="section">
+    <div class="container narrow">
+      <h2>How the One Dollar Plan works</h2>
+      <ol class="steps">
+        <li><strong>Transparency.</strong> Every supporter and their amount is listed below (anonymous is okay).</li>
+        <li><strong>Momentum.</strong> Progress updates, receipts, and milestones get posted publicly.</li>
+        <li><strong>Community.</strong> Can’t donate? Sharing helps just as much.</li>
+      </ol>
+      
+    </div>
+  </section>
+
+  <section id="donate" class="section alt">
+    <div class="container two-col">
+      <div>
+        <h2>Donate your $1</h2>
+        <p>Use any of the links below. After donating, add yourself to the list so the counter updates instantly.</p>
+        
+        <div class="payment-grid" id="fallbackPayments">
+          <a class="btn btn-ghost" href="https://cash.app/$YourCashtag" target="_blank" rel="noopener">Cash App $1</a>
+          <a class="btn btn-ghost" href="https://venmo.com/u/YourVenmo" target="_blank" rel="noopener">Venmo $1</a>
+          <a class="btn btn-ghost" href="https://paypal.me/YourPayPalMe/1" target="_blank" rel="noopener">PayPal $1</a>
+          <button class="btn btn-ghost" type="button" id="zelleBtnFallback">Zelle $1</button>
+        </div>
+        <div class="payment-grid" id="paymentGrid"></div>
+
+        <p class="micro">Note: Direct payment providers do not share names/amounts with this page. Please add your donation manually below, or the counter won't move (unless using the optional Firebase backend).</p>
+      </div>
+      <div>
+        <h3>Add your donation</h3>
+        <form id="donationForm" class="card">
+          <label>
+            Name (or "Anonymous")
+            <input type="text" id="name" required placeholder="Your name or Anonymous" />
+          </label>
+          <label>
+            Amount (USD)
+            <input type="number" id="amount" min="0.5" step="0.01" required placeholder="1.00" />
+          </label>
+          <label>
+            Message (optional)
+            <textarea id="message" rows="3" placeholder="A note for encouragement"></textarea>
+          </label>
+          <button type="submit" class="btn btn-primary">Add to counter</button>
+          <div class="micro">We only store the name, amount, and message you provide.</div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <section id="supporters" class="section">
+    <div class="container">
+      <div class="section-head">
+        <h2>Supporters</h2>
+        <div class="tools">
+          <button id="exportCsv" class="btn small admin-only-inline">Export CSV</button>
+          
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="table" id="donorTable" aria-describedby="tableHelp">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Name</th>
+              <th>Amount</th>
+              <th>Message</th>
+              <th>Date</th>
+              <th class="admin-only">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="donorTbody"></tbody>
+        </table>
+        <div id="tableHelp" class="micro">This list shows everyone who added their donation. Admin mode enables edit/delete.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="proof" class="section alt">
+    <div class="container narrow">
+      <h2>Proof & Updates</h2>
+      <p>Milestones, receipts, and training updates will be posted here. Follow along as we turn $1s into a pilot’s license.</p>
+      <ul class="updates" id="updates">
+        <li><span class="update-date">Today</span> Site launched. Goal: <span id="goalInline">$10,000</span>. Thank you for being here. ✈️</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div>© <span id="year"></span> One Dollar Plan</div>
+      <div class="micro">By donating you agree to our <a href="terms.html">Terms &amp; Conditions</a>. <strong>No refunds.</strong></div>
+      <div class="footer-actions">
+        <a href="admin.html" class="btn btn-ghost small" aria-label="Admin">Admin</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/js/firebase-config.js"></script>
+  <script type="module" src="assets/js/firebase-app.js"></script>
+  <script src="assets/js/main.js"></script>
+</body>
+</html>
