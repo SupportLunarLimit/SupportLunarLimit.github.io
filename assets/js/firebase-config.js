@@ -1,4 +1,5 @@
-// Config + Admin SHA-256 hex passcode
+// Config + Admin SHA-256 hex passcode zelleEmail: 'contact@onedollarplan.com', zellePhone: ''
+   
 window.DONATION_APP_CONFIG = {
   useFirebase: true,
   firebaseDriver: 'realtime',
@@ -13,8 +14,7 @@ window.DONATION_APP_CONFIG = {
     cashapp: 'https://cash.app/$YourCashtag',
     venmo: 'https://venmo.com/u/YourVenmo',
     paypal: 'https://paypal.me/YourPayPalMe/1',
-    zelleEmail: 'contact@onedollarplan.com',
-    zellePhone: ''
+    
   },
   demoMode: false,
   firebaseConfig: {
