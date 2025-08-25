@@ -2,7 +2,7 @@
 window.DONATION_APP_CONFIG = {
   useFirebase: true,
   firebaseDriver: 'realtime',
-  adminPin: '123',
+  adminPin: '123456789',
   goalAmount: 10000,
   paymentLinks: {
     cashapp: 'https://cash.app/$YourCashtag',
