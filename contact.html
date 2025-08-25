@@ -35,7 +35,7 @@
           <input type="text" id="c_name" name="name" required />
         </label>
         <label>Your email
-          <input type="email" id="c_email" name="_replyto" required />
+          <input type="email" id="c_email" name="email" required />
         </label>
         <label>Subject
           <input type="text" id="c_subject" name="subject" required />
@@ -68,28 +68,18 @@
     e.preventDefault();
     const status = document.getElementById('contactStatus');
     status.textContent = "Sending…";
-    const payload = {
-      name:   document.getElementById('c_name').value.trim(),
-      _replyto: document.getElementById('c_email').value.trim(),
-      subject: document.getElementById('c_subject').value.trim(),
-      message: document.getElementById('c_message').value.trim(),
-    };
+    const fd = new FormData();
+    fd.set('name', document.getElementById('c_name').value.trim());
+    fd.set('email', document.getElementById('c_email').value.trim());
+    fd.set('subject', document.getElementById('c_subject').value.trim());
+    fd.set('message', document.getElementById('c_message').value.trim());
+    fd.set('_subject', `[One Dollar Plan] ${document.getElementById('c_subject').value.trim()}`);
     try{
-      const res = await fetch(FORMSPREE_URL, {
-        method: "POST",
-        headers: { "Accept": "application/json", "Content-Type":"application/json" },
-        body: JSON.stringify(payload)
-      });
-      if (res.ok){
-        status.textContent = "✅ Thanks! Your message was sent.";
-        e.target.reset();
-      } else {
-        const data = await res.json().catch(()=> ({}));
-        status.textContent = "❌ Send failed. " + (data?.errors?.[0]?.message || res.statusText);
-      }
-    }catch(err){
-      status.textContent = "⚠️ Network error. Please try again.";
-    }
+      const res = await fetch(FORMSPREE_URL, { method: "POST", headers: { "Accept": "application/json" }, body: fd });
+      let data=null; try{ data = await res.json(); }catch(_){}
+      if (res.ok){ status.textContent = "✅ Thanks! Your message was sent."; e.target.reset(); }
+      else { const msg = (data?.errors?.map(e=>e.message).join('; ') || data?.error || res.statusText || 'Unknown error'); status.textContent = "❌ Send failed: " + msg; }
+    }catch(err){ status.textContent = "⚠️ Network/CORS error."; }
   });
   </script>
 </body>

@@ -59,11 +59,6 @@
     </div>
   </section>
 
-  
-
-  
-  
-
   <section id="how-it-works" class="section">
     <div class="container narrow">
       <h2>How the One Dollar Plan works</h2>
@@ -72,7 +67,6 @@
         <li><strong>Momentum.</strong> Progress updates, receipts, and milestones get posted publicly.</li>
         <li><strong>Community.</strong> Can’t donate? Sharing helps just as much.</li>
       </ol>
-      
     </div>
   </section>
 
@@ -80,17 +74,16 @@
     <div class="container two-col">
       <div>
         <h2>Donate your $1</h2>
-        <p>Use any of the links below. After donating, add yourself to the list so the counter updates instantly.</p>
-        
-        <div class="payment-grid" id="fallbackPayments">
-          <a class="btn btn-ghost" href="https://cash.app/$YourCashtag" target="_blank" rel="noopener">Cash App $1</a>
-          <a class="btn btn-ghost" href="https://venmo.com/u/YourVenmo" target="_blank" rel="noopener">Venmo $1</a>
-          <a class="btn btn-ghost" href="https://paypal.me/YourPayPalMe/1" target="_blank" rel="noopener">PayPal $1</a>
-          <button class="btn btn-ghost" type="button" id="zelleBtnFallback">Zelle $1</button>
-        </div>
         <div class="payment-grid" id="paymentGrid"></div>
-
-        <p class="micro">Note: Direct payment providers do not share names/amounts with this page. Please add your donation manually below, or the counter won't move (unless using the optional Firebase backend).</p>
+        <noscript>
+          <p class="micro">Enable JavaScript to see the donate buttons. Or use these direct links:
+            <a href="https://cash.app/$YourCashtag">Cash App</a>,
+            <a href="https://venmo.com/u/YourVenmo">Venmo</a>,
+            <a href="https://paypal.me/YourPayPalMe/1">PayPal</a>.
+            Zelle: YOUR-ZELLE-EMAIL@example.com
+          </p>
+        </noscript>
+        <p class="micro">Use the buttons above. After donating, add yourself below so the counter updates instantly.</p>
       </div>
       <div>
         <h3>Add your donation</h3>
@@ -118,10 +111,6 @@
     <div class="container">
       <div class="section-head">
         <h2>Supporters</h2>
-        <div class="tools">
-          <button id="exportCsv" class="btn small admin-only-inline">Export CSV</button>
-          
-        </div>
       </div>
       <div class="table-wrap">
         <table class="table" id="donorTable" aria-describedby="tableHelp">
@@ -137,7 +126,7 @@
           </thead>
           <tbody id="donorTbody"></tbody>
         </table>
-        <div id="tableHelp" class="micro">This list shows everyone who added their donation. Admin mode enables edit/delete.</div>
+        <div id="tableHelp" class="micro">This list shows everyone who added their donation. Admin tools are in <a href="admin.html">Admin</a>.</div>
       </div>
     </div>
   </section>
@@ -145,9 +134,8 @@
   <section id="proof" class="section alt">
     <div class="container narrow">
       <h2>Proof & Updates</h2>
-      <p>Milestones, receipts, and training updates will be posted here. Follow along as we turn $1s into a pilot’s license.</p>
       <ul class="updates" id="updates">
-        <li><span class="update-date">Today</span> Site launched. Goal: <span id="goalInline">$10,000</span>. Thank you for being here. ✈️</li>
+        <li><span class="update-date">Today</span> Site launched. Goal: <span id="goalInline">$10,000</span>.</li>
       </ul>
     </div>
   </section>

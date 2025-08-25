@@ -2,8 +2,7 @@
   const cfg = window.DONATION_APP_CONFIG || {};
   const GOAL = Number(cfg.goalAmount || 10000);
 
-  // ---------- DOM refs ----------
-  const adminToggle = () => document.getElementById('adminToggle');
+  // DOM refs
   const form = () => document.getElementById('donationForm');
   const nameEl = () => document.getElementById('name');
   const amountEl = () => document.getElementById('amount');
@@ -15,21 +14,19 @@
   const goalInlineEl = () => document.getElementById('goalInline');
   const progressFillEl = () => document.getElementById('progressFill');
   const percentTextEl = () => document.getElementById('percentText');
-  const exportBtn = () => document.getElementById('exportCsv');
   const shareBtn = () => document.getElementById('shareBtn');
   const yearEl = () => document.getElementById('year');
   const directLinksEl = () => document.getElementById('directLinks');
   const paymentGrid = () => document.getElementById('paymentGrid');
-  const fallback = () => document.getElementById('fallbackPayments');
+  const exportBtn = () => document.getElementById('exportCsv');
+  const exportBtn2 = () => document.getElementById('exportCsv2');
 
-  // ---------- Utilities ----------
   function currency(n){ return (Number(n)||0).toLocaleString(undefined,{style:'currency',currency:'USD'}) }
   function escapeHtml(s){ return String(s??'').replace(/[&<>\"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;','\'':'&#039;'}[m])) }
   function formatDate(ts){ try{ return new Date(ts).toLocaleString(); }catch(e){ return '' } }
   function setText(el, val){ if (el) el.textContent = val; }
   function byId(id){ return document.getElementById(id); }
 
-  // ---------- Basic layout init ----------
   document.addEventListener('DOMContentLoaded', ()=>{
     const y = yearEl(); if (y) y.textContent = new Date().getFullYear().toString();
     const g = goalAmountEl(); if (g) g.textContent = currency(GOAL);
@@ -44,19 +41,17 @@
       if (!nav.contains(e.target) && e.target !== btn){ nav.classList.remove('open'); btn.setAttribute('aria-expanded','false'); }
     });
 
-    // Payment quick links (keep fallback visible always)
     buildDirectLinks();
     bindShare();
-    bindAdmin();
     bindExport();
-    bindForm(); // will enable once Firebase + auth are ready
+    bindForm();
+
+    setTimeout(attachListener, 300);
   });
 
-  // ---------- Payment links + Share ----------
   function buildDirectLinks(){
     const el = directLinksEl();
     const pg = paymentGrid();
-    const fb = fallback();
     const p = (cfg.paymentLinks||{});
     const zelleEmail = p.zelleEmail || '';
     const zellePhone = p.zellePhone || '';
@@ -68,30 +63,21 @@
     if (zelleEmail) links.push(`<span title="Use your bank app">Zelle: ${zelleEmail}</span>`);
     if (el) el.innerHTML = links.join(' · ');
 
-    // Native-ish buttons with web fallback (but always show fallback block too)
-    if (pg && !pg.__built){ pg.__built=true;
+    if (pg && !pg.__built){
+      pg.__built = true;
       let btns = '';
       if (p.cashapp) btns += `<a class="btn btn-ghost" href="${p.cashapp}" target="_blank" rel="noopener">Cash App $1</a>`;
       if (p.venmo)   btns += `<a class="btn btn-ghost" href="${p.venmo}" target="_blank" rel="noopener">Venmo $1</a>`;
       if (p.paypal)  btns += `<a class="btn btn-ghost" href="${p.paypal}" target="_blank" rel="noopener">PayPal $1</a>`;
       if (zelleEmail || zellePhone) btns += `<button class="btn btn-ghost" type="button" id="zelleBtn">Zelle $1</button>`;
       pg.innerHTML = btns;
+
       const zb = byId('zelleBtn');
       if (zb){ zb.addEventListener('click',()=>{
         const info = [zelleEmail, zellePhone].filter(Boolean).join(' / ');
         if (!info) return alert('Zelle info not configured.');
         navigator.clipboard.writeText(info).then(()=> alert('Zelle info copied to clipboard: '+info+'\\nOpen your bank app to send.'));
       });}
-    }
-
-    // Fallback Zelle copy
-    const zbf = byId('zelleBtnFallback');
-    if (zbf){
-      zbf.addEventListener('click', ()=>{
-        const info = [zelleEmail, zellePhone].filter(Boolean).join(' / ');
-        if (!info) return alert('Zelle info not configured.');
-        navigator.clipboard.writeText(info).then(()=> alert('Zelle info copied: '+info+'\\nOpen your bank app to send.'));
-      });
     }
   }
 
@@ -121,23 +107,8 @@
     }
   }
 
-  // ---------- Admin + Export ----------
-  function bindAdmin(){
-    const btn = adminToggle();
-    if (!btn) return;
-    btn.addEventListener('click', () => {
-      if (document.body.classList.contains('admin-mode')){
-        document.body.classList.remove('admin-mode'); return;
-      }
-      const pin = prompt('Enter admin PIN');
-      if (pin === (cfg.adminPin || '1234')) document.body.classList.add('admin-mode');
-      else alert('Incorrect PIN');
-    });
-  }
   function bindExport(){
-    const btn = exportBtn();
-    if (!btn) return;
-    btn.addEventListener('click', ()=>{
+    function exportNow(){
       const f = window.__firebase;
       if (!f) return alert('Not ready yet.');
       const ev = f.API.ref(f.db, 'donations');
@@ -148,20 +119,17 @@
           list.map(x=>[x.name||'Anonymous', String(x.amount||0), (x.message||'').replace(/\\n/g,' '), new Date(x.ts||Date.now()).toISOString()]));
         const csv = rows.map(r => r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\\n');
         const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'supporters.csv';
-        a.click();
-        URL.revokeObjectURL(a.href);
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'supporters.csv'; a.click(); URL.revokeObjectURL(a.href);
       });
-    });
+    }
+    const b1 = exportBtn(); if (b1) b1.addEventListener('click', exportNow);
+    const b2 = exportBtn2(); if (b2) b2.addEventListener('click', exportNow);
   }
 
-  // ---------- Firebase hook ----------
+  // Firebase listener + form
   let listenerAttached = false;
   function attachListener(){
-    if (listenerAttached) return;
-    const dL = byId('diagListen'); if (dL) dL.textContent = 'attaching';
+    if (listenerAttached || !window.__firebase) return;
     try{
       const f = window.__firebase;
       const ev = f.API.ref(f.db, 'donations');
@@ -169,21 +137,18 @@
         const val = snap.val() || {};
         const list = Object.values(val);
         render(list);
-        const dL2 = byId('diagListen'); if (dL2) dL2.textContent = 'attached';
       }, (err)=>{
-        const msg = (err && err.message) ? err.message : String(err);
-        const de = byId('diagErr'); if (de) de.textContent = 'listen error: ' + msg;
+        console.warn('listen error', err);
       });
       listenerAttached = true;
     }catch(err){
-      const de = byId('diagErr'); if (de) de.textContent = 'list init error: ' + (err && err.message ? err.message : String(err));
+      console.warn('list init error', err);
     }
   }
 
   function bindForm(){
     const fEl = form();
     if (!fEl) return;
-    // Disable submit until auth is ready
     const btn = fEl.querySelector('button[type="submit"]');
     function setEnabled(ok){ if (btn) btn.disabled = !ok; }
     setEnabled(!!window.__authReady);
@@ -213,7 +178,6 @@
     });
   }
 
-  // ---------- Render ----------
   function render(list){
     list = Array.isArray(list) ? list.slice().sort((a,b)=> (b.ts||0)-(a.ts||0)) : [];
     const total = list.reduce((sum,x)=>sum + Number(x.amount||0), 0);
@@ -239,7 +203,7 @@
     });
     body.querySelectorAll('[data-del]').forEach(btn=>{
       btn.addEventListener('click', async (e)=>{
-        if (!document.body.classList.contains('admin-mode')) return alert('Enable Admin mode');
+        if (!document.body.classList.contains('admin-mode')) return alert('Open admin.html and enter passcode to enable Admin mode.');
         const ts=Number(e.currentTarget.getAttribute('data-del'));
         try{
           const f = window.__firebase;
@@ -253,18 +217,7 @@
     });
   }
 
-  // ---------- Glue events ----------
-  document.addEventListener('firebase-ready', ()=>{
-    const fb = byId('diagFb'); if (fb) fb.textContent = 'ready';
-    attachListener();
-  });
-  document.addEventListener('firebase-auth-ready', ()=>{
-    const au = byId('diagAuth'); if (au && au.textContent.indexOf('signed') === -1) au.textContent = 'signed in';
-    const btn = byId('diagTestWrite');
-    if (btn){ btn.disabled = false; btn.textContent = 'Run'; }
-  });
-
-  // Also try to attach listener shortly after DOM load, in case events fired early
+  document.addEventListener('firebase-ready', attachListener);
   document.addEventListener('DOMContentLoaded', ()=> setTimeout(attachListener, 300));
 
 })();

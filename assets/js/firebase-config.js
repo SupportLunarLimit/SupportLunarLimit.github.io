@@ -1,8 +1,13 @@
-// Firebase config + Payment links (EDIT THESE LINKS)
+// Config + Admin SHA-256 hex passcode
 window.DONATION_APP_CONFIG = {
   useFirebase: true,
   firebaseDriver: 'realtime',
-  adminPin: '123456789',
+  adminAuth: {
+    method: 'sha256',
+    encoding: 'hex',
+    minLength: 8,
+    hash: '008c70392e3abfbd0fa47bbc2ed96aa99bd49e159727fcba0f2e6abeb3a9d601'
+  },
   goalAmount: 10000,
   paymentLinks: {
     cashapp: 'https://cash.app/$YourCashtag',

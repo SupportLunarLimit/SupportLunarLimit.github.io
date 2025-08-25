@@ -1,79 +1,57 @@
 // Firebase v12 CDN imports with Anonymous Auth and Diagnostics
 const cfg = window.DONATION_APP_CONFIG || {};
 if (!cfg.useFirebase) {
-  // No Firebase
 } else {
   const version = '12.1.0';
   const imports = [
     `https://www.gstatic.com/firebasejs/${version}/firebase-app.js`,
     `https://www.gstatic.com/firebasejs/${version}/firebase-auth.js`,
-    `https://www.gstatic.com/firebasejs/${version}/firebase-database.js`,
-    `https://www.gstatic.com/firebasejs/${version}/firebase-firestore.js`
+    `https://www.gstatic.com/firebasejs/${version}/firebase-database.js`
   ];
-  Promise.all(imports.map(u => import(u))).then(([appMod, authMod, dbMod, fsMod]) => {
+  Promise.all(imports.map(u => import(u))).then(([appMod, authMod, dbMod]) => {
     const { initializeApp } = appMod;
     const { getAuth, signInAnonymously, onAuthStateChanged } = authMod;
     const app = initializeApp(cfg.firebaseConfig);
-    window.__fbReady = false; window.__authReady = false;
 
-    // Diagnostics state
-    window.__diag = { fb: 'init', auth: 'pending', db: 'pending', uid: null, error: null };
-
-    // Prepare DB driver
-    if (cfg.firebaseDriver === 'realtime') {
-      window.__firebase = { driver: 'realtime', app, db: dbMod.getDatabase(app), API: dbMod };
-      try{ const el=document.getElementById('diagDb'); if(el) el.textContent='Realtime DB ready'; window.__diag.db='realtime-ready'; }catch(e){}
-    } else {
-      window.__firebase = { driver: 'firestore', app, fs: fsMod.getFirestore(app), API: fsMod };
-      try{ const el=document.getElementById('diagDb'); if(el) el.textContent='Firestore ready'; window.__diag.db='firestore-ready'; }catch(e){}
-    }
-    try{ const el=document.getElementById('diagFb'); if(el) el.textContent='ready'; window.__diag.fb='ready'; }catch(e){}
-
-    // Let UI initialize (reads) as soon as Firebase is ready
+    window.__firebase = { driver: 'realtime', app, db: dbMod.getDatabase(app), API: dbMod };
+    window.__fbReady = true;
+    const fbSpan = document.getElementById('diagFb'); if (fbSpan) fbSpan.textContent = 'ready';
+    const dbSpan = document.getElementById('diagDb'); if (dbSpan) dbSpan.textContent = 'Realtime DB ready';
     document.dispatchEvent(new Event('firebase-ready'));
 
-    // Anonymous auth for writes
     const auth = getAuth(app);
     signInAnonymously(auth).catch((e)=>{
-      console.warn('Anonymous auth failed:', e);
-      try{ const el=document.getElementById('diagAuth'); if (el) el.textContent = 'auth error'; }catch(_){}
-      window.__diag.error = e && e.message ? e.message : String(e);
-      const err = document.getElementById('diagErr'); if (err) err.textContent = window.__diag.error;
+      const err = document.getElementById('diagErr'); if (err) err.textContent = 'auth error: ' + (e && e.message ? e.message : e);
     });
     onAuthStateChanged(auth, (user)=>{
-      try{ const el=document.getElementById('diagAuth'); if (el) el.textContent = user ? ('signed in (anon) uid ' + user.uid) : 'not signed in'; }catch(_){}
-      window.__diag.auth = user ? 'signed-in' : 'signed-out'; window.__diag.uid = user?user.uid:null;
+      const a = document.getElementById('diagAuth'); if (a) a.textContent = user ? ('signed in (anon) uid ' + user.uid) : 'not signed in';
       if (user){ window.__authReady = true; document.dispatchEvent(new Event('firebase-auth-ready')); }
     });
 
-    // Diagnostics test write ($1)
-    document.addEventListener('firebase-ready', ()=>{
+    function bindDiag(){
       const btn=document.getElementById('diagTestWrite');
-      if (!btn || !window.__firebase) return;
+      if (!btn || btn.__bound) return;
+      btn.__bound = true;
+      function setEnabled(ok){ btn.disabled = !ok; btn.textContent = ok ? 'Run' : 'Run (auth not ready)'; }
+      setEnabled(!!window.__authReady);
+      document.addEventListener('firebase-auth-ready', ()=> setEnabled(true), { once:true });
       btn.addEventListener('click', async ()=>{
         const out=document.getElementById('diagWrite');
         try{
           const f=window.__firebase;
-          if (f.driver==='realtime'){
-            const ref = f.API.ref(f.db, 'donations/__diag__');
-            await f.API.set(ref, { name:'__diag__', amount: 1, message:'test', ts: Date.now() });
-            out.textContent = 'write ok (realtime)';
-          } else {
-            const col = f.API.collection(f.fs, 'donations');
-            await f.API.addDoc(col, { name:'__diag__', amount: 1, message:'test', ts: Date.now() });
-            out.textContent = 'write ok (firestore)';
-          }
+          const parent = f.API.ref(f.db, 'donations');
+          const newRef = f.API.push(parent);
+          await f.API.set(newRef, { name:'__diag__', amount: 1, message:'test', ts: Date.now() });
+          out.textContent = 'write ok (realtime)';
         }catch(err){
-          out.textContent = 'error: ' + (err && err.message ? err.message : String(err));
-          const errSpan = document.getElementById('diagErr'); if (errSpan) errSpan.textContent = out.textContent;
+          const msg = (err && err.message) ? err.message : String(err);
+          const errSpan = document.getElementById('diagErr'); if (errSpan) errSpan.textContent = 'error: ' + msg;
+          if (out) out.textContent = 'error: ' + msg;
         }
       });
-    });
-
-  }).catch(err => {
-    console.error('Firebase load error', err);
-    try{ const el=document.getElementById('diagFb'); if(el) el.textContent='load error'; }catch(_){}
-    window.__diag = window.__diag || {}; window.__diag.error = err && err.message ? err.message : String(err);
-    const errSpan = document.getElementById('diagErr'); if (errSpan) errSpan.textContent = window.__diag.error;
+    }
+    document.addEventListener('DOMContentLoaded', bindDiag);
+    document.addEventListener('firebase-ready', bindDiag);
+    document.addEventListener('firebase-auth-ready', bindDiag);
   });
 }
