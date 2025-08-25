@@ -61,6 +61,23 @@
 
   
 
+  
+  <section class="section alt">
+    <div class="container narrow">
+      <details class="card" id="diagnostics" open>
+        <summary><strong>Diagnostics</strong></summary>
+        <div style="font-size:13px;line-height:1.6" id="diagBody">
+          <div><b>Firebase:</b> <span id="diagFb">loading…</span></div>
+          <div><b>Auth:</b> <span id="diagAuth">loading…</span></div>
+          <div><b>Realtime DB:</b> <span id="diagDb">loading…</span></div>
+          <div><b>Listener:</b> <span id="diagListen">pending…</span></div>
+          <div><b>Test write:</b> <button id="diagTestWrite" class="btn small btn-ghost" type="button">Run</button> <span id="diagWrite"></span></div>
+          <div><b>Last error:</b> <span id="diagErr">—</span></div>
+        </div>
+      </details>
+    </div>
+  </section>
+
   <section id="how-it-works" class="section">
     <div class="container narrow">
       <h2>How the One Dollar Plan works</h2>

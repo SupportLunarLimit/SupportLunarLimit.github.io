@@ -1,4 +1,4 @@
-// Firebase v12 CDN imports with Anonymous Auth and Diagnostics (amount: $1)
+// Firebase v12 CDN imports with Anonymous Auth and Diagnostics
 const cfg = window.DONATION_APP_CONFIG || {};
 if (!cfg.useFirebase) {
   // No Firebase
@@ -13,32 +13,39 @@ if (!cfg.useFirebase) {
   Promise.all(imports.map(u => import(u))).then(([appMod, authMod, dbMod, fsMod]) => {
     const { initializeApp } = appMod;
     const { getAuth, signInAnonymously, onAuthStateChanged } = authMod;
-    let __authResolve; let __authReady = new Promise(r=>{ __authResolve = r; });
     const app = initializeApp(cfg.firebaseConfig);
 
-    // Diagnostics hooks
-    window.__diag = { fb: 'not-ready', auth: 'not-ready', db: 'not-ready', uid: null, error: null };
+    // Diagnostics state
+    window.__diag = { fb: 'init', auth: 'pending', db: 'pending', uid: null, error: null };
 
-    // Anonymous auth (for secure write rules)
-    const auth = getAuth(app);
-    signInAnonymously(auth).catch((e)=>console.warn('Anonymous auth failed:', e));
-    onAuthStateChanged(auth, (user)=>{
-      if (user) document.dispatchEvent(new Event('firebase-auth-ready'));
-      if (user && __authResolve){ __authResolve(true); __authResolve = null; document.dispatchEvent(new Event('firebase-ready')); }
-      try{ const el=document.getElementById('diagAuth'); if (el) el.textContent = user ? ('signed in (anon) uid ' + user.uid) : 'not signed in'; window.__diag.auth = user ? 'signed-in' : 'signed-out'; window.__diag.uid = user?user.uid:null; }catch(e){}
-    });
-
+    // Prepare DB driver
     if (cfg.firebaseDriver === 'realtime') {
-      window.__firebase = { driver: 'realtime', app, db: dbMod.getDatabase(app), API: dbMod, auth };
+      window.__firebase = { driver: 'realtime', app, db: dbMod.getDatabase(app), API: dbMod };
       try{ const el=document.getElementById('diagDb'); if(el) el.textContent='Realtime DB ready'; window.__diag.db='realtime-ready'; }catch(e){}
     } else {
-      window.__firebase = { driver: 'firestore', app, fs: fsMod.getFirestore(app), API: fsMod, auth };
+      window.__firebase = { driver: 'firestore', app, fs: fsMod.getFirestore(app), API: fsMod };
       try{ const el=document.getElementById('diagDb'); if(el) el.textContent='Firestore ready'; window.__diag.db='firestore-ready'; }catch(e){}
     }
     try{ const el=document.getElementById('diagFb'); if(el) el.textContent='ready'; window.__diag.fb='ready'; }catch(e){}
-    
 
-    // Diagnostics test write (amount $1 so it passes secure rules)
+    // Let UI initialize (reads) as soon as Firebase is ready
+    document.dispatchEvent(new Event('firebase-ready'));
+
+    // Anonymous auth for writes
+    const auth = getAuth(app);
+    signInAnonymously(auth).catch((e)=>{
+      console.warn('Anonymous auth failed:', e);
+      try{ const el=document.getElementById('diagAuth'); if (el) el.textContent = 'auth error'; }catch(_){}
+      window.__diag.error = e && e.message ? e.message : String(e);
+      const err = document.getElementById('diagErr'); if (err) err.textContent = window.__diag.error;
+    });
+    onAuthStateChanged(auth, (user)=>{
+      try{ const el=document.getElementById('diagAuth'); if (el) el.textContent = user ? ('signed in (anon) uid ' + user.uid) : 'not signed in'; }catch(_){}
+      window.__diag.auth = user ? 'signed-in' : 'signed-out'; window.__diag.uid = user?user.uid:null;
+      if (user) document.dispatchEvent(new Event('firebase-auth-ready'));
+    });
+
+    // Diagnostics test write ($1)
     document.addEventListener('firebase-ready', ()=>{
       const btn=document.getElementById('diagTestWrite');
       if (!btn || !window.__firebase) return;
@@ -57,11 +64,15 @@ if (!cfg.useFirebase) {
           }
         }catch(err){
           out.textContent = 'error: ' + (err && err.message ? err.message : String(err));
+          const errSpan = document.getElementById('diagErr'); if (errSpan) errSpan.textContent = out.textContent;
         }
       });
     });
 
   }).catch(err => {
     console.error('Firebase load error', err);
+    try{ const el=document.getElementById('diagFb'); if(el) el.textContent='load error'; }catch(_){}
+    window.__diag = window.__diag || {}; window.__diag.error = err && err.message ? err.message : String(err);
+    const errSpan = document.getElementById('diagErr'); if (errSpan) errSpan.textContent = window.__diag.error;
   });
 }

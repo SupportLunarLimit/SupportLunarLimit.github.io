@@ -86,7 +86,9 @@ const fb = window.__firebase;
 const storage = {
   list(cb){
     const ev = fb.API.ref(fb.db, 'donations');
-    fb.API.onValue(ev,(snap)=>{ const val = snap.val() || {}; cb(Object.values(val)); });
+    const diagL=document.getElementById('diagListen'); if (diagL) diagL.textContent='attached';
+        const dl=document.getElementById('diagListen'); if (dl) dl.textContent='attached';
+        fb.API.onValue(ev,(snap)=>{ const val = snap.val() || {}; cb(Object.values(val)); });
   },
   async add(entry){
     const key=Math.random().toString(36).slice(2);
