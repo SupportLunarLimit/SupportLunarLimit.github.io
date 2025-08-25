@@ -51,7 +51,7 @@
     if (cfg.paymentLinks?.paypal) btns += `<a class="btn btn-ghost" href="${cfg.paymentLinks.paypal}" target="_blank" rel="noopener">PayPal $1</a>`;
     if (zelleEmail || zellePhone){ btns += `<button class="btn btn-ghost" type="button" id="zelleBtn">Zelle $1</button>`; }
     paymentGrid.innerHTML = btns || '<div class="badge warn">Add your payment links in assets/js/firebase-config.js</div>';
-    if (fallback) { fallback.classList.add("hidden"); }
+    if (fallback) { fallback.classList.add('hidden'); }
     const zb = document.getElementById('zelleBtn');
     if (zb){ zb.addEventListener('click', ()=>{
       const info = [zelleEmail, zellePhone].filter(Boolean).join(' / ');
@@ -62,6 +62,18 @@
     });}
   }
   buildDirectLinks();
+
+  // Fallback Zelle copy button
+  (function(){
+    const btn = document.getElementById("zelleBtnFallback");
+    if (!btn) return;
+    const zelleEmail = (cfg.paymentLinks && cfg.paymentLinks.zelleEmail) || "YOUR-ZELLE-EMAIL@example.com";
+    const zellePhone = (cfg.paymentLinks && cfg.paymentLinks.zellePhone) || "";
+    btn.addEventListener("click", ()=>{
+      const info = [zelleEmail, zellePhone].filter(Boolean).join(" / ");
+      navigator.clipboard.writeText(info).then(()=> alert("Zelle info copied: "+info+"\\nOpen your bank app to send."));
+    });
+  })();
 
   let admin = false;
   adminToggle.addEventListener('click', () => {
@@ -74,40 +86,26 @@
   const storage = (function(){
     const fb = window.__firebase;
     const usingFirebase = !!(cfg.useFirebase && fb);
-    const realtime = usingFirebase && fb.driver === 'realtime';
-    const firestore = usingFirebase && fb.driver === 'firestore';
 
     function readLocal(){ try{return JSON.parse(localStorage.getItem(LS_KEY)||'[]')}catch(e){return[]} }
     function writeLocal(list){ localStorage.setItem(LS_KEY, JSON.stringify(list)) }
 
     if (usingFirebase){
-      const ev = (cfg.firebaseDriver === 'realtime') ? fb.API.ref(fb.db, 'donations') : fb.API.collection(fb.fs, 'donations');
+      const ev = fb.API.ref(fb.db, 'donations');
       async function list(cb){
-        if (realtime){
-          fb.API.onValue(ev,(snap)=>{ const val = snap.val() || {}; cb(Object.values(val)); });
-        } else {
-          const q = fb.API.query(ev, fb.API.orderBy('ts','desc'));
-          fb.API.onSnapshot(q, (qs)=> cb(qs.docs.map(d=>d.data())) );
-        }
+        fb.API.onValue(ev,(snap)=>{ const val = snap.val() || {}; cb(Object.values(val)); });
       }
       async function add(entry){
-        if (realtime){
-          const key=Math.random().toString(36).slice(2);
-          await fb.API.set(fb.API.ref(fb.db, 'donations/'+key), entry);
-        } else {
-          await fb.API.addDoc(ev, entry);
-        }
+        const key=Math.random().toString(36).slice(2);
+        try { await fb.API.set(fb.API.ref(fb.db, 'donations/'+key), entry); }
+        catch(err){ console.error('Add failed', err); alert('Could not save to database: ' + (err && err.message ? err.message : err)); throw err; }
       }
       async function remove(ts){
-        if (realtime){
+        try {
           const snap = await fb.API.get(fb.API.ref(fb.db, 'donations'));
           const val = snap.val() || {};
           for (const [k,v] of Object.entries(val)){ if (v.ts===ts){ await fb.API.remove(fb.API.ref(fb.db,'donations/'+k)); } }
-        } else {
-          const q = fb.API.query(ev, fb.API.where('ts','==',ts));
-          const qs = await fb.API.getDocs(q);
-          for (const doc of qs.docs){ await fb.API.deleteDoc(doc.ref); }
-        }
+        } catch(err){ console.error('Delete failed', err); alert('Delete failed: ' + (err && err.message ? err.message : err)); throw err; }
       }
       return { list, add, remove, usingFirebase:true };
     }
@@ -130,7 +128,7 @@
       const message=(messageEl.value||'').trim();
       if (!isFinite(amount) || amount<=0) return alert('Enter a valid amount');
       const entry={name, amount: Math.round(amount*100)/100, message, ts: Date.now()};
-      try { await storage.add(entry); } catch(err) { console.error("Add failed", err); alert("Could not save to database: " + (err && err.message ? err.message : err)); return; }
+      await storage.add(entry);
       form.reset();
       refresh(true);
       const sup = document.querySelector('#supporters'); if (sup) window.scrollTo({ top: sup.offsetTop-40, behavior:'smooth' });
@@ -180,7 +178,7 @@
         if (!document.body.classList.contains('admin-mode')) return alert('Enable Admin mode');
         if (!confirm('Remove this entry?')) return;
         const ts=Number(e.currentTarget.getAttribute('data-del'));
-        try { await storage.remove(ts); } catch(err) { console.error("Delete failed", err); alert("Delete failed: " + (err && err.message ? err.message : err)); return; }
+        await storage.remove(ts);
         refresh();
       });
     });
@@ -201,17 +199,7 @@
   }
 
   function currency(n){ return (n||0).toLocaleString(undefined,{style:'currency',currency:'USD'}) }
-  function escapeHtml(s){ return String(s).replace(/[&<>\"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',\"'\":'&#039;'}[m])) }
+  function escapeHtml(s){ return String(s).replace(/[&<>\"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;','\'':'&#039;'}[m])) }
   function formatDate(ts){ try{ return new Date(ts).toLocaleString(); }catch(e){ return '' } }
 
 })();
-  (function(){
-    const btn = document.getElementById("zelleBtnFallback");
-    if (!btn) return;
-    const zelleEmail = (cfg.paymentLinks && cfg.paymentLinks.zelleEmail) || "YOUR-ZELLE-EMAIL@example.com";
-    const zellePhone = (cfg.paymentLinks && cfg.paymentLinks.zellePhone) || "";
-    btn.addEventListener("click", ()=>{
-      const info = [zelleEmail, zellePhone].filter(Boolean).join(" / ");
-      navigator.clipboard.writeText(info).then(()=> alert("Zelle info copied: "+info+"\nOpen your bank app to send."));
-    });
-  })();

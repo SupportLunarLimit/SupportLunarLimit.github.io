@@ -1,4 +1,4 @@
-// Firebase config + Zelle option
+// Firebase config + Payment links (EDIT THESE LINKS)
 window.DONATION_APP_CONFIG = {
   useFirebase: true,
   firebaseDriver: 'realtime',

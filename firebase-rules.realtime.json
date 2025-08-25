@@ -6,7 +6,7 @@
         "ts"
       ],
       "$id": {
-        ".write": "auth != null && newData.hasChildren(['name','amount','ts']) && newData.child('name').isString() && newData.child('name').val().length <= 64 && newData.child('amount').isNumber() && newData.child('amount').val() >= 0.5 && newData.child('amount').val() <= 1000 && (!newData.child('message').exists() || (newData.child('message').isString() && newData.child('message').val().length <= 280)) && newData.child('ts').isNumber()"
+        ".write": "auth != null && newData.hasChildren([\"name\",\"amount\",\"ts\"]) && newData.child(\"name\").isString() && newData.child(\"name\").val().length <= 64 && newData.child(\"amount\").isNumber() && newData.child(\"amount\").val() >= 0.5 && newData.child(\"amount\").val() <= 1000 && (!newData.child(\"message\").exists() || (newData.child(\"message\").isString() && newData.child(\"message\").val().length <= 280)) && newData.child(\"ts\").isNumber()"
       }
     }
   }
