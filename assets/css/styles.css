@@ -122,3 +122,8 @@ tr:hover td{background:rgba(255,255,255,0.02)}
 /* Admin-only inline controls (buttons/links) */
 .admin-only-inline{display:none}
 .admin-mode .admin-only-inline{display:inline-flex}
+
+
+/* Admin-only blocks (entire sections/cards visible only in admin mode) */
+.admin-only-block{display:none}
+.admin-mode .admin-only-block{display:block}
