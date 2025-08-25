@@ -11,9 +11,9 @@ window.DONATION_APP_CONFIG = {
   },
   goalAmount: 10000,
   paymentLinks: {
-    cashapp: 'https://cash.app/$YourCashtag',
-    venmo: 'https://venmo.com/u/YourVenmo',
-    paypal: 'https://paypal.me/YourPayPalMe/1',
+    cashapp: 'https://cash.app/$LuisZayas',
+    venmo: 'https://venmo.com/u/Luis-Zayas-7',
+    paypal: 'https://paypal.me/LuisZayas/1',
     
   },
   demoMode: false,
