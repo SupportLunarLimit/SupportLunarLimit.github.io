@@ -203,3 +203,114 @@
   function formatDate(ts){ try{ return new Date(ts).toLocaleString(); }catch(e){ return '' } }
 
 })();
+
+// === Enhancements: native deep links + robust Share fallback ===
+
+// Try to open native app first, then web link fallback
+function openPayment(appName, webUrl, appUrl){
+  try {
+    if (appUrl){
+      window.location.href = appUrl; // try native
+      setTimeout(()=>{ if (webUrl) window.open(webUrl, '_blank', 'noopener'); }, 700);
+    } else if (webUrl){
+      window.open(webUrl, '_blank', 'noopener');
+    } else {
+      alert(appName + ' link not configured');
+    }
+  } catch(e){
+    if (webUrl) window.open(webUrl, '_blank', 'noopener');
+    else alert(appName + ' link not configured');
+  }
+}
+
+// Override buildDirectLinks to include deep links and $1 quick buttons
+function buildDirectLinks(){
+  const links = [];
+  const cashWeb = (cfg.paymentLinks && cfg.paymentLinks.cashapp) || '';
+  const venmoWeb = (cfg.paymentLinks && cfg.paymentLinks.venmo) || '';
+  const paypalWeb = (cfg.paymentLinks && cfg.paymentLinks.paypal) || '';
+  const zelleEmail = (cfg.paymentLinks && cfg.paymentLinks.zelleEmail) || '';
+  const zellePhone = (cfg.paymentLinks && cfg.paymentLinks.zellePhone) || '';
+  const amount = 1; // quick $1
+
+  if (cashWeb) links.push(`<a href="${cashWeb}" target="_blank" rel="noopener">Cash App</a>`);
+  if (venmoWeb) links.push(`<a href="${venmoWeb}" target="_blank" rel="noopener">Venmo</a>`);
+  if (paypalWeb) links.push(`<a href="${paypalWeb}" target="_blank" rel="noopener">PayPal</a>`);
+  if (zelleEmail) links.push(`<span title="Use your bank app">Zelle: ${zelleEmail}</span>`);
+  directLinksEl.innerHTML = links.join(' · ');
+
+  function venmoDeepLink(webUrl){
+    try{
+      const m = /venmo\.com\/u\/([^\/\?\s]+)/i.exec(webUrl||''); // extract username
+      if (!m) return '';
+      const u = m[1];
+      const note = encodeURIComponent('One Dollar Plan');
+      return `venmo://paycharge?txn=pay&recipients=${encodeURIComponent(u)}&amount=${amount}&note=${note}`;
+    }catch(e){ return ''; }
+  }
+  function cashDeepLink(webUrl){
+    try{
+      const m = /cash\.app\/\$(\w+)/i.exec(webUrl||''); // extract $cashtag
+      if (!m) return '';
+      const tag = m[1];
+      return `cashapp://cash.me/$${tag}?amount=${amount}`;
+    }catch(e){ return ''; }
+  }
+  function paypalDeepLink(webUrl){ return ''; }
+
+  let btns='';
+  if (cashWeb){
+    btns += `<button class="btn btn-ghost" type="button" onclick="openPayment('Cash App','${cashWeb}','${cashDeepLink(cashWeb)}')">Cash App $${amount}</button>`;
+  }
+  if (venmoWeb){
+    btns += `<button class="btn btn-ghost" type="button" onclick="openPayment('Venmo','${venmoWeb}','${venmoDeepLink(venmoWeb)}')">Venmo $${amount}</button>`;
+  }
+  if (paypalWeb){
+    btns += `<a class="btn btn-ghost" href="${paypalWeb}" target="_blank" rel="noopener">PayPal $${amount}</a>`;
+  }
+  if (zelleEmail || zellePhone){
+    btns += `<button class="btn btn-ghost" type="button" id="zelleBtn">Zelle $${amount}</button>`;
+  }
+  paymentGrid.innerHTML = btns || '<div class="badge warn">Add your payment links in assets/js/firebase-config.js</div>';
+  if (fallback) { fallback.classList.add('hidden'); }
+  const zb = document.getElementById('zelleBtn');
+  if (zb){ zb.addEventListener('click', ()=>{
+    const info = [zelleEmail, zellePhone].filter(Boolean).join(' / ');
+    if (!info){ alert('Zelle info not configured.'); return; }
+    navigator.clipboard.writeText(info).then(()=>{
+      alert('Zelle info copied to clipboard: '+info+'\\nOpen your bank app to send.');
+    });
+  });}
+}
+
+// Robust Share fallback: copies a message with links
+function shareFallback(){
+  const parts = [];
+  parts.push('Be 1 in 10,000 — donate $1 to help fund flight school.');
+  parts.push(window.location.href);
+  const p = cfg.paymentLinks || {};
+  if (p.cashapp) parts.push('Cash App: ' + p.cashapp);
+  if (p.venmo) parts.push('Venmo: ' + p.venmo);
+  if (p.paypal) parts.push('PayPal: ' + p.paypal);
+  const text = parts.join('\\n');
+  if (navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(()=>{
+      alert('Share text (with links) copied to your clipboard. Paste it anywhere!');
+    }).catch(()=>{
+      prompt('Copy this and share:', text);
+    });
+  } else {
+    prompt('Copy this and share:', text);
+  }
+}
+
+// Override shareSite to use navigator.share when available, else fallback
+function shareSite(){
+  const data={ title:'One Dollar Plan', text:'Be 1 in 10,000 — donate $1 to help fund flight school.', url: location.href };
+  if (navigator.share) navigator.share(data).catch(shareFallback);
+  else shareFallback();
+}
+
+// Rebuild buttons now that we've overridden functions
+try { buildDirectLinks(); } catch(e){ console.warn('buildDirectLinks override failed', e); }
+
